@@ -3,6 +3,9 @@ import sys
 import json
 import subprocess
 import gi
+import tempfile
+import os
+import stat
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
@@ -38,7 +41,6 @@ class LiniteApp(Gtk.Window):
         main_vbox.pack_start(scrolled_window, True, True, 0)
 
         # Grid for categories
-        # We will use a FlowBox or just a VBox of categories
         content_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         scrolled_window.add(content_box)
 
@@ -122,8 +124,9 @@ class LiniteApp(Gtk.Window):
         self.run_installation(to_install_apt, to_install_flatpak)
 
     def run_installation(self, apt_apps, flatpak_apps):
-        # Construct the shell script to run
-        commands = ["echo 'Starting installation...'"]
+        # Construct the shell script content
+        commands = ["#!/bin/bash"]
+        commands.append("echo 'Starting installation...'")
 
         if apt_apps:
             commands.append("echo 'Updating apt repositories...'")
@@ -135,19 +138,29 @@ class LiniteApp(Gtk.Window):
         if flatpak_apps:
             apps_str = " ".join(flatpak_apps)
             commands.append(f"echo 'Installing flatpak packages: {apps_str}'")
-            # Assumes flathub is added. Pop usually has it.
-            # We add --noninteractive equivalent? -y is enough usually.
             commands.append(f"flatpak install -y flathub {apps_str}")
 
         commands.append("echo 'Installation complete!'")
         commands.append("echo 'Press Enter to close this window.'")
         commands.append("read")
 
-        full_script = "\n".join(commands)
+        script_content = "\n".join(commands)
 
-        # We need to run this in a terminal emulator.
-        # Try finding a terminal emulator.
-        terminals = ["gnome-terminal", "tilix", "x-terminal-emulator", "konsole", "xfce4-terminal"]
+        # Write to temporary file
+        try:
+            fd, script_path = tempfile.mkstemp(suffix=".sh", prefix="linite_install_")
+            with os.fdopen(fd, 'w') as tmp:
+                tmp.write(script_content)
+
+            # Make executable
+            st = os.stat(script_path)
+            os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+        except Exception as e:
+            self.show_error(f"Failed to create temporary installation script: {e}")
+            return
+
+        # Try finding a terminal emulator
+        terminals = ["cosmic-term", "gnome-terminal", "tilix", "x-terminal-emulator", "konsole", "xfce4-terminal"]
         terminal_cmd = None
 
         for term in terminals:
@@ -156,13 +169,18 @@ class LiniteApp(Gtk.Window):
                 break
 
         if terminal_cmd:
-            # Most terminals accept -- command or -e command
-            # gnome-terminal uses -- bash -c ...
-            if terminal_cmd == "gnome-terminal":
-                 subprocess.Popen([terminal_cmd, "--", "bash", "-c", full_script])
-            else:
-                 # Generic fallback
-                 subprocess.Popen([terminal_cmd, "-e", f"bash -c \"{full_script}\""])
+            try:
+                if terminal_cmd == "cosmic-term":
+                     subprocess.Popen([terminal_cmd, "--", "bash", "-c", script_path])
+                elif terminal_cmd == "gnome-terminal":
+                     subprocess.Popen([terminal_cmd, "--", "bash", "-c", script_path])
+                else:
+                     # Generic fallback
+                     # Many terminals support -e "command" or -e command args
+                     # Safe bet usually is -e "bash -c script"
+                     subprocess.Popen([terminal_cmd, "-e", f"bash -c '{script_path}'"])
+            except Exception as e:
+                self.show_error(f"Failed to launch terminal {terminal_cmd}: {e}")
         else:
             self.show_error("No terminal emulator found. Cannot run installation.")
 
