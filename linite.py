@@ -2,6 +2,9 @@
 import sys
 import json
 import subprocess
+import tempfile
+import os
+import stat
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -123,7 +126,7 @@ class LiniteApp(Gtk.Window):
 
     def run_installation(self, apt_apps, flatpak_apps):
         # Construct the shell script to run
-        commands = ["echo 'Starting installation...'"]
+        commands = ["#!/bin/bash", "echo 'Starting installation...'"]
 
         if apt_apps:
             commands.append("echo 'Updating apt repositories...'")
@@ -142,12 +145,27 @@ class LiniteApp(Gtk.Window):
         commands.append("echo 'Installation complete!'")
         commands.append("echo 'Press Enter to close this window.'")
         commands.append("read")
+        # Self-destruct script
+        commands.append("rm \"$0\"")
 
         full_script = "\n".join(commands)
 
+        # Write to temporary file
+        try:
+            fd, script_path = tempfile.mkstemp(suffix=".sh")
+            with os.fdopen(fd, 'w') as tmp:
+                tmp.write(full_script)
+
+            # Make executable
+            st = os.stat(script_path)
+            os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+        except Exception as e:
+            self.show_error(f"Failed to create temporary installation script: {e}")
+            return
+
         # We need to run this in a terminal emulator.
         # Try finding a terminal emulator.
-        terminals = ["gnome-terminal", "tilix", "x-terminal-emulator", "konsole", "xfce4-terminal"]
+        terminals = ["cosmic-term", "gnome-terminal", "tilix", "x-terminal-emulator", "konsole", "xfce4-terminal"]
         terminal_cmd = None
 
         for term in terminals:
@@ -157,12 +175,11 @@ class LiniteApp(Gtk.Window):
 
         if terminal_cmd:
             # Most terminals accept -- command or -e command
-            # gnome-terminal uses -- bash -c ...
             if terminal_cmd == "gnome-terminal":
-                 subprocess.Popen([terminal_cmd, "--", "bash", "-c", full_script])
+                 subprocess.Popen([terminal_cmd, "--", script_path])
             else:
-                 # Generic fallback
-                 subprocess.Popen([terminal_cmd, "-e", f"bash -c \"{full_script}\""])
+                 # Generic fallback (including cosmic-term)
+                 subprocess.Popen([terminal_cmd, "-e", script_path])
         else:
             self.show_error("No terminal emulator found. Cannot run installation.")
 
