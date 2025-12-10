@@ -1,0 +1,37 @@
+{
+  "Web Browsers": [
+    { "name": "Firefox", "id": "firefox", "type": "apt", "description": "Free and open-source web browser" },
+    { "name": "Google Chrome", "id": "com.google.Chrome", "type": "flatpak", "description": "Fast, simple, and secure web browser" },
+    { "name": "Brave", "id": "com.brave.Browser", "type": "flatpak", "description": "Privacy-oriented web browser" }
+  ],
+  "Communication": [
+    { "name": "Discord", "id": "com.discordapp.Discord", "type": "flatpak", "description": "All-in-one voice and text chat" },
+    { "name": "Zoom", "id": "us.zoom.Zoom", "type": "flatpak", "description": "Video conferencing" },
+    { "name": "Slack", "id": "com.slack.Slack", "type": "flatpak", "description": "Team communication" },
+    { "name": "Telegram", "id": "org.telegram.desktop", "type": "flatpak", "description": "Messaging app with a focus on speed and security" },
+    { "name": "Signal", "id": "org.signal.Signal", "type": "flatpak", "description": "Encrypted instant messaging" }
+  ],
+  "Media": [
+    { "name": "VLC", "id": "org.videolan.VLC", "type": "flatpak", "description": "Multimedia player" },
+    { "name": "Spotify", "id": "com.spotify.Client", "type": "flatpak", "description": "Digital music service" },
+    { "name": "OBS Studio", "id": "com.obsproject.Studio", "type": "flatpak", "description": "Software for video recording and live streaming" },
+    { "name": "GIMP", "id": "org.gimp.GIMP", "type": "flatpak", "description": "GNU Image Manipulation Program" },
+    { "name": "Inkscape", "id": "org.inkscape.Inkscape", "type": "flatpak", "description": "Vector graphics editor" }
+  ],
+  "Development": [
+    { "name": "VS Code", "id": "com.visualstudio.code", "type": "flatpak", "description": "Code editor redefined and optimized for building and debugging modern web and cloud applications" },
+    { "name": "PyCharm Community", "id": "com.jetbrains.PyCharm-Community", "type": "flatpak", "description": "Python IDE for Professional Developers" },
+    { "name": "Git", "id": "git", "type": "apt", "description": "Distributed version control system" },
+    { "name": "Postman", "id": "com.getpostman.Postman", "type": "flatpak", "description": "API Development Environment" }
+  ],
+  "Gaming": [
+    { "name": "Steam", "id": "com.valvesoftware.Steam", "type": "flatpak", "description": "Ultimate destination for playing, discussing, and creating games" },
+    { "name": "Lutris", "id": "net.lutris.Lutris", "type": "flatpak", "description": "Open Source gaming platform for Linux" },
+    { "name": "Heroic Games Launcher", "id": "com.heroicgameslauncher.hgl", "type": "flatpak", "description": "A Native GOG and Epic Games Launcher" }
+  ],
+  "Utilities": [
+    { "name": "Bitwarden", "id": "com.bitwarden.desktop", "type": "flatpak", "description": "Secure and free password manager for all of your devices" },
+    { "name": "Dropbox", "id": "com.dropbox.Client", "type": "flatpak", "description": "File hosting service" },
+    { "name": "Gnome Tweaks", "id": "gnome-tweaks", "type": "apt", "description": "Adjust advanced GNOME options" }
+  ]
+}
